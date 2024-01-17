@@ -1,0 +1,144 @@
+# -*- coding: utf-8 -*-
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
+from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoAlertPresentException
+import unittest
+import time
+from paths import *
+from selenium.webdriver import Chrome, ChromeOptions
+
+class TestVacancies(unittest.TestCase):
+    def setUp(self):
+        opts = ChromeOptions()
+        opts.add_argument("--window-size=2560,1440")
+        self.driver = webdriver.Chrome(options=opts)
+        self.driver.implicitly_wait(30)
+        self.base_url = "https://www.google.com/"
+        self.verificationErrors = []
+        self.accept_next_alert = True
+    
+    def test_vacancies(self):
+        driver = self.driver
+
+        """
+        Première étape : connexion avant de commencer le test
+        """
+        driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login")
+        driver.find_element(By.NAME,"username").click()
+        driver.find_element(By.NAME,"username").clear()
+        driver.find_element(By.NAME,"username").send_keys("Admin")
+        driver.find_element(By.NAME,"password").click()
+        driver.find_element(By.NAME,"password").clear()
+        driver.find_element(By.NAME,"password").send_keys("admin123")
+        driver.find_element(By.CSS_SELECTOR, ".oxd-form").submit()
+        driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index")
+
+
+        """
+        Ajout de l'employé avec les infos suivantes pour les besoins du test
+        Vacancy : Test Running
+        Job tittle : Content specialist
+        Hiring manager: Odis Adalwin  
+        """
+        driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/recruitment/viewJobVacancy")
+        driver.find_element(By.XPATH,"//*[@id='app']/div[1]/div[2]/div[2]/div/div[1]/div[2]/form/div[1]/div/div[3]/div/div[2]/div/div").click()
+        driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/recruitment/addJobVacancy")
+        driver.find_element(By.XPATH,"//*[@id='app']/div[1]/div[2]/div[2]/div/div/form/div[1]/div[1]/div/div[2]/input").click()
+        driver.find_element(By.XPATH,"//div[@id='app']/div/div[2]/div[2]/div/div/form/div/div/div/div[2]/input").clear()
+        driver.find_element(By.XPATH,"//div[@id='app']/div/div[2]/div[2]/div/div/form/div/div/div/div[2]/input").send_keys("TEST RUNNING")
+        driver.find_element(By.XPATH,"//div[@id='app']/div/div[2]/div[2]/div/div/form/div/div[2]/div/div[2]/div/div/div").click()
+        driver.find_element(By.XPATH,"//div[@id='app']/div/div[2]/div[2]/div/div/form/div[3]/div/div/div[2]/div/div/input").click()
+        driver.find_element(By.XPATH,"//div[@id='app']/div/div[2]/div[2]/div/div/form/div[3]/div/div/div[2]/div/div/input").clear()
+        driver.find_element(By.XPATH,"//div[@id='app']/div/div[2]/div[2]/div/div/form/div[3]/div/div/div[2]/div/div/input").send_keys("Odis Adalwin")
+        driver.find_element(By.XPATH,"//button[@type='submit']").click()
+        driver.find_element(By.LINK_TEXT,"Vacancies").click()
+        driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/recruitment/viewJobVacancy")
+
+        """
+        Le test permet de faire la recherche d'un employé en fonction du manager qui l'a 
+        embauché. Ici pour Hiring Manager = Odis Adalwin
+        On vérifie que le nombre de records renvoyé correspond au nombres d'entrées dans la liste entière 
+        pour le critère choisi.
+        """
+        # On compte le nombre d'éléments d'intérêt de la liste
+        records_list = driver.find_elements(By.XPATH, "//*[@id='app']/div[1]/div[2]/div[2]/div/div[2]/div[3]/div/div")
+        count_records_list=0
+        print(f"{len(records_list)}")
+
+        for element in records_list:
+            tab=[]
+            tab.append(element)
+            odis_aldawin = driver.find_element(By.XPATH, "//*[@id='app']/div[1]/div[2]/div[2]/div/div[2]/div[3]/div/div[2]/div[4]/div/div[4]/div")
+            if odis_aldawin in tab :
+                    count_records_list+=1
+
+        print(f"Dans la liste initiale, il y a {count_records_list} entrée(s) d'intérêt.")
+
+
+        # Instructions pour la recherche
+        driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/recruitment/viewJobVacancy")
+        driver.find_element(By.LINK_TEXT,"Vacancies").click()
+        driver.find_element(By.XPATH,"//*[@id='app']/div[1]/div[2]/div[2]/div/div[1]/div[2]/form/div[1]/div/div[3]/div/div[2]/div/div/div[1]").click()
+        driver.find_element(By.XPATH,"//button[@type='submit']").click()
+
+        # On compte le nombre d'éléments de la liste qu'il ressort
+        records_list_recherche = driver.find_elements(By.XPATH,"//*[@id='app']/div[1]/div[2]/div[2]/div/div[2]/div[3]/div/div[2]")
+        found_elements=0
+        for element in records_list:
+            odis_aldawin = driver.find_element(By.XPATH, "//*[@id='app']/div[1]/div[2]/div[2]/div/div[2]/div[3]/div/div[2]/div[4]/div/div[4]/div")
+            if odis_aldawin in records_list:
+                    found_elements+=1
+
+        assert count_records_list == found_elements
+
+
+        # if count_records_list == found_elements :
+        #     print(f"La recherche, renvoie {found_elements} entrée(s). =======> TEST PASSANT")
+        # else:
+        #     print(f"La recherche, renvoie {found_elements} entrée(s). =======> ECHEC TEST")
+        
+        # Reset de la recherche
+        # driver.find_element(By.XPATH,"//div[@id='app']/div/div[2]/div[2]/div/div/div[2]/form/div[2]/button").click() 
+        
+        """
+        Après avoir réinitialisé la liste, le test permettra de trier en fonction de 'job title/ordre Ascending',
+        puis de vérifier que le tri est correct. 
+        """
+        # Suppression de l'élément Test Running créé pour les besoins du test
+        driver.find_element(By.XPATH,"//div[@id='app']/div/div[2]/div[2]/div/div[2]/div[3]/div/div/div/div[3]/div/i").click()
+
+        driver.find_element(By.XPATH,"//div[@id='app']/div/div[2]/div[2]/div/div[2]/div[3]/div/div/div/div[3]/div/div/ul/li/span").click()
+        driver.find_element(By.XPATH,"//div[@id='app']/div/div[2]/div[2]/div/div[2]/div[3]/div/div[2]/div[3]/div/div[6]/div/button/i").click()
+        driver.find_element(By.XPATH,"//div[@id='app']/div[3]/div/div/div/div[3]/button[2]").click()
+        
+
+    def is_element_present(self, how, what):
+        try: self.driver.find_element(by=how, value=what)
+        except NoSuchElementException as e: return False
+        return True
+    
+    def is_alert_present(self):
+        try: self.driver.switch_to_alert()
+        except NoAlertPresentException as e: return False
+        return True
+    
+    def close_alert_and_get_its_text(self):
+        try:
+            alert = self.driver.switch_to_alert()
+            alert_text = alert.text
+            if self.accept_next_alert:
+                alert.accept()
+            else:
+                alert.dismiss()
+            return alert_text
+        finally: self.accept_next_alert = True
+    
+    def tearDown(self):
+        self.driver.quit()
+        self.assertEqual([], self.verificationErrors)
+
+if __name__ == "__main__":
+    unittest.main()

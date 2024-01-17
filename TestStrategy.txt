@@ -1,0 +1,18 @@
+
+But : Afin de tester le site https://opensource-demo.orangehrmlive.com/web/index.php/auth/login, 
+écrire des stratégies de tests et les mettre en place
+
+AUTHENTIFICATION
+    - login
+    - logout
+
+CHOIX DE L'ONGLET "RECUITMENT" > CANDIDATES
+    - fonction manage list
+        add
+        edit
+        delete
+
+CHOIX DE L'ONGLET "RECUITMENT" > VACANCIES
+**** Ajout et suppression de l'employé Test Running/Accountant/Hiring manager:Odis Adalwin pour les besoins du test ****
+    - fonction search en fonction de "Vacancy"
+    - fonction sort by job title/Ascending
